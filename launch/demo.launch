@@ -1,0 +1,8 @@
+<launch>
+	<node pkg="kinova_go" type="demo.py" name="j2n6s300_pose_action_client" respawn="true" >
+	</node>
+    <node pkg="NCRL_Huskey_CV" type="detect.py " name="object_detector" respawn="true">
+	</node>
+    <include file="$(find kinova_bringup)/launch/kinova_robot.launch" />
+
+</launch>
