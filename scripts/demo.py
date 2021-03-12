@@ -221,7 +221,7 @@ class RobotArm():
 	def arm_go_thread(self):
 		data = []
 		for i in range(6):
-			data.append(self.m[i].get())
+			data.append(self.m[i])
 		pose_mq, pose_mdeg, pose_mrad = self.unitParser(data) # get q deg and rag 
 		try:
 
@@ -279,26 +279,31 @@ class RobotArm():
 			self.currentCartesian[index] = float(temp_str[1])
 
 	def setvariable(self,state_num,target_):
-		
+		self.m =[]
 		self.arm_home = rospy.ServiceProxy('/j2n6s300_driver/in/home_arm',HomeArm)
 		self.arm_stop = rospy.ServiceProxy('/j2n6s300_driver/in/stop',Stop)
 		self.arm_start = rospy.ServiceProxy('/j2n6s300_driver/in/start',Start)
 		self.arm_s = rospy.Subscriber('arm/command',Int32,self.arm_get)
 		self.arm_p = rospy.Publisher('arm/finish',Int32,queue_size=1)
+
 		if state_num == 1:  #recognize ball
+			target_=[0.2, -0.27, 0.506, 1.64, 1.108, -0.04]
 			for i in range(6):
-				self.m.append.append(target_[i])
-				self.m[i].set(self.currentCartesian[i])
-				self.m[i].grid(row=i,column=1)
+				self.m.append(target_[i])
+				print(self.m)
 			self.go()
+			print('1 in set')
 		elif state_num == 2:  #recognize ball
+			target_=[0.015, -0.42, 0.39, 3.11, -0.12, 2.75]
 			for i in range(6):
-				self.m.append.append(target_[i])
-				self.m[i].set(self.currentCartesian[i])
-				self.m[i].grid(row=i,column=1)
+				self.m.append(target_[i])
+				print(self.m)
 			self.go()
+			print('2 in set')
 		elif state_num == 3:  #finger close 
-			gripper_client(self.prefix,[6800,6800,6800])
+			gripper_client('j2n6s300_',[6800,6800,6800])
+			print('3 in set')
+
 		else:
 			self.arm_stop()
         
@@ -307,20 +312,23 @@ def camera_callback(data):
 	coordinate_input = data.data 
 
 def state_callback(data):
-    state = data.data          
+	global state 
+	state = data.data
+	kinova_robotType = 'j2n6s300'
+	KINOVA = RobotArm(kinova_robotType)
+	KINOVA.setvariable(state,target_point)
+	print('in callback')
 
 
 if __name__ == '__main__':
-
+	global state
 	rospy.init_node('j2n6s300_pose_action_client')
-	kinova_robotType = 'j2n6s300'
-	KINOVA = RobotArm(kinova_robotType)
+
 	rospy.Subscriber("camera_coordinate", String, camera_callback)
 	rospy.Subscriber("state", Int32, state_callback)
-	rate = rospy.Rate(10) # 10hz
-	while(1):
-		KINOVA.setvariable(state,target_point)
-		rate.sleep()
+	#rate = rospy.Rate(10) # 10hz
+	
+		#rate.sleep()
 
     # spin() simply keeps python from exiting until this node is stopped
 	rospy.spin()
