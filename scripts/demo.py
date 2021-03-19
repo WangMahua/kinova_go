@@ -9,6 +9,7 @@ import rospy
 from std_msgs.msg import Int32,String
 import sys
 import numpy as np
+import time
 
 import actionlib
 import kinova_msgs.msg
@@ -286,26 +287,48 @@ class RobotArm():
 		self.arm_s = rospy.Subscriber('arm/command',Int32,self.arm_get)
 		self.arm_p = rospy.Publisher('arm/finish',Int32,queue_size=1)
 
-		if state_num == 1:  #recognize ball
-			target_=[0.2, -0.27, 0.506, 1.64, 1.108, -0.04]
+		if state_num == 0:
+			target_=[-0.368360340595, -0.0915138721466, 0.498772323132, 3.1319835186, 0.000802508671768, -2.05962896347]
 			for i in range(6):
 				self.m.append(target_[i])
 				print(self.m)
+			self.go()
+			print('0 first point')
+			time.sleep(1.5)
+			# self.m =[]
+			# target_=[-0.42108938098, -0.0624903440475, 0.894120633602, 0.162792995572, -0.23499250412, -0.794607758522]
+			# for i in range(6):
+			# 	self.m.append(target_[i])
+			# 	print(self.m)
+			# self.go()
+			# print('0 in set')
+
+		if state_num == 1:  #recognize ball
+			target_=[-0.00153621006757, -0.404122054577, 0.496579319239, -3.13902044296, 0.0104509945959, 2.90323400497]
+			for i in range(6):
+				self.m.append(target_[i])
+			print(self.m)	
 			self.go()
 			print('1 in set')
-		elif state_num == 2:  #recognize ball
-			target_=[0.015, -0.42, 0.39, 3.11, -0.12, 2.75]
+			self.m =[]
+			state_num = 2
+			time.sleep(5)
+
+		if state_num == 2:  #recognize ball
+			target_=[-0.00153621006757, -0.404122054577, 0.406579319239, -3.13902044296, 0.0104509945959, 2.90323400497]
 			for i in range(6):
 				self.m.append(target_[i])
-				print(self.m)
+			print(self.m)
 			self.go()
 			print('2 in set')
-		elif state_num == 3:  #finger close 
+			state_num = 3
+			# self.m =[]
+			time.sleep(1.5)
+
+		if state_num == 3:  #finger close 
 			gripper_client('j2n6s300_',[6800,6800,6800])
 			print('3 in set')
-
-		else:
-			self.arm_stop()
+			
         
 
 def camera_callback(data):
@@ -321,25 +344,8 @@ def state_callback(data):
 
 
 if __name__ == '__main__':
-	global state
 	rospy.init_node('j2n6s300_pose_action_client')
-
 	rospy.Subscriber("camera_coordinate", String, camera_callback)
 	rospy.Subscriber("state", Int32, state_callback)
-	#rate = rospy.Rate(10) # 10hz
-	
-		#rate.sleep()
-
-    # spin() simply keeps python from exiting until this node is stopped
 	rospy.spin()
 
-
-	'''
-	try:
-		poses = [float(n) for n in pose_mq]
-		result = cartesian_pose_client(poses[:3], poses[3:])
-		print('Cartesian pose sent!')
-	except rospy.ROSInterruptException:
-		print "program interrupted before completion"
-	verboseParser(args.verbose, poses)
-	'''
