@@ -25,6 +25,7 @@ import threading
 currentFingerPosition = [0.0, 0.0, 0.0]
 target_point = []
 state = 0 
+mission_data = Int32()
 
 
 #function for kinova finger open and close
@@ -154,6 +155,8 @@ class RobotArm():
 		self.currentCartesian = [0.2, -0.27, 0.506, 1.64, 1.108, -0.04]
 		self.setpoint = [0.2, -0.27, 0.506, 1.64, 1.108, -0.04]
 		self.target_ = [ 0, 0, 0, 0, 0, 0]
+		kinova_complete = 0
+		
 
 	def start_GUI(self):
 		rospy.init_node(self.prefix + 'pose_action_client')
@@ -286,6 +289,7 @@ class RobotArm():
 		self.arm_start = rospy.ServiceProxy('/j2n6s300_driver/in/start',Start)
 		self.arm_s = rospy.Subscriber('arm/command',Int32,self.arm_get)
 		self.arm_p = rospy.Publisher('arm/finish',Int32,queue_size=1)
+		
 
 		if state_num == 0:
 			target_=[-0.368360340595, -0.0915138721466, 0.498772323132, 3.1319835186, 0.000802508671768, -2.05962896347]
@@ -312,7 +316,7 @@ class RobotArm():
 			print('1 in set')
 			self.m =[]
 			state_num = 2
-			time.sleep(5)
+			time.sleep(4)
 
 		if state_num == 2:  #recognize ball
 			target_=[-0.00153621006757, -0.404122054577, 0.406579319239, -3.13902044296, 0.0104509945959, 2.90323400497]
@@ -323,23 +327,29 @@ class RobotArm():
 			print('2 in set')
 			state_num = 3
 			# self.m =[]
-			time.sleep(1.5)
+			time.sleep(1)
+			
 
 		if state_num == 3:  #finger close 
 			gripper_client('j2n6s300_',[6800,6800,6800])
 			print('3 in set')
-			
-        
+			kinova_complete = 1
+		mission_data.data = kinova_complete
+		mission_state.publish(mission_data)
+		print (mission_data)
+		       
 
 def camera_callback(data):
 	coordinate_input = data.data 
 
 def state_callback(data):
 	global state 
+	mission_state.publish(mission_data)
 	state = data.data
 	kinova_robotType = 'j2n6s300'
 	KINOVA = RobotArm(kinova_robotType)
 	KINOVA.setvariable(state,target_point)
+	mission_state.publish(mission_data)
 	print('in callback')
 
 
@@ -347,5 +357,8 @@ if __name__ == '__main__':
 	rospy.init_node('j2n6s300_pose_action_client')
 	rospy.Subscriber("camera_coordinate", String, camera_callback)
 	rospy.Subscriber("state", Int32, state_callback)
+	mission_state = rospy.Publisher("kinova_ok", Int32, queue_size=1)
+	mission_data.data = 0
+	mission_state.publish(mission_data)
 	rospy.spin()
 
