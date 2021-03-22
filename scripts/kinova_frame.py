@@ -6,6 +6,7 @@ import numpy as np
 from numpy.linalg import inv
 
 def callback(data):
+	pub = rospy.Publisher("ball_pos", Point, queue_size=1)
 	camera_coordinate_x = data.x  
 	camera_coordinate_y = data.y 
 	camera_coordinate_z = data.z
@@ -23,7 +24,14 @@ def callback(data):
 	camera_coordinate_new = np.array([[camera_coordinate_x], [camera_coordinate_y], [camera_coordinate_z],[1]])
 	transform_matrix = np.array([[-1,0,0,0.102],[0,0,-1,0.365],[0,-1,0,0.49],[0,0,0,1]])
 	kinova_coordinate_new = np.matmul(transform_matrix,camera_coordinate_new)
+	ball_position = Point()
+	ball_position.x = kinova_coordinate_new.item(0)
+	ball_position.y = kinova_coordinate_new.item(1)
+	ball_position.z = kinova_coordinate_new.item(2)
+	pub.publish(ball_position)
 	print(kinova_coordinate_new)
+
+
 	print('---')
     
 
