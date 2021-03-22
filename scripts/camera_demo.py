@@ -6,7 +6,8 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 import roslib; roslib.load_manifest('kinova_demo')
 import rospy
-from std_msgs.msg import Int32,String,Point
+from std_msgs.msg import Int32,String
+from geometry_msgs.msg import Point
 import sys
 import numpy as np
 import time
@@ -32,8 +33,10 @@ ball_pos_in_kinova = Point()
 average_ball_pos = Point()
 ball_pos_list = []
 
-q = queue.Queue(maxsize=10)
-
+q = Queue.Queue(maxsize=10)
+sumx = 0
+sumy = 0 
+sumz = 0 
 
 #function for kinova finger open and close
 def gripper_client(prefix,finger_positions):
@@ -383,22 +386,32 @@ def ball_pos_callback(data):
 	global ball_pos_in_kinova
 	global q
 	global average_ball_pos
+	global sumx
+	global sumy 
+	global sumz 
 	ball_pos_in_kinova = data 
-	print(ball_pos_in_kinova.x)
-	print(ball_pos_in_kinova.y)
-	print(ball_pos_in_kinova.z)
-	q.put(data)
+	q.put(ball_pos_in_kinova)
+	print(q)
 	if q.full() == True :
-		for i in range(q.qsize()):
+		for i in range(10):
 			temp_pos = q.get()
+
 			sumx += temp_pos.x
 			sumy += temp_pos.y
 			sumz += temp_pos.z
-			if i == q.qsize():
+
+			if i == 9:
+				
+				print(q.qsize())
 				k=i+1
-				average_ball_pos.x = sumx/k
-				average_ball_pos.y = sumy/k
-				average_ball_pos.z = sumz/k	
+				print(k)
+				average_ball_pos.x = sumx/10
+				average_ball_pos.y = sumy/10
+				average_ball_pos.z = sumz/10
+				sumx = 0
+				sumy = 0 
+				sumz = 0
+	print('average:')	
 	print(average_ball_pos.x)
 	print(average_ball_pos.y)
 	print(average_ball_pos.z)	
