@@ -13,16 +13,9 @@ def callback(data):
 	
 	camera_coordinate = np.array([[camera_coordinate_x], [camera_coordinate_y], [camera_coordinate_z]])
 
-	
-	rotate_matrix = np.array([[-1.16829603,0.08799549,0.15661172],[-0.81759598,-0.84087181,-0.52033374],[-0.57934749,-0.64769659,0.41838879]])
-
-	kinova_coordinate = np.matmul(rotate_matrix,camera_coordinate)
-
-	print(kinova_coordinate)
-
 
 	camera_coordinate_new = np.array([[camera_coordinate_x], [camera_coordinate_y], [camera_coordinate_z],[1]])
-	transform_matrix = np.array([[-1,0,0,0.102],[0,0,-1,0.365],[0,-1,0,0.49],[0,0,0,1]])
+	transform_matrix = np.array([[-1,0,0,0.132],[0,0,-1,0.535],[0,-1,0,0.3],[0,0,0,1]])
 	kinova_coordinate_new = np.matmul(transform_matrix,camera_coordinate_new)
 	ball_position = Point()
 	ball_position.x = kinova_coordinate_new.item(0)
