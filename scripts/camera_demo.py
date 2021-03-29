@@ -404,7 +404,10 @@ def ball_pos_callback(data):
 	global flag 
 
 	ball_pos_in_kinova = data 
-	average_ball_pos = data
+	if abs(data.x) <=1 and abs(data.y)<=0.6 and abs(data.z)<=1:
+		average_ball_pos = data
+	last_average_ball_pos = average_ball_pos
+
 	'''
 	q.put(ball_pos_in_kinova)
 	
@@ -413,7 +416,9 @@ def ball_pos_callback(data):
 			temp_pos = q.get()
 
 			sumx += temp_pos.x
-			sumy += temp_pos.y
+			sumy += temp88065714286
+-1.44111421589
+0.4799_pos.y
 			sumz += temp_pos.z
 			if i == 9:			
 				average_ball_pos.x = sumx/10
