@@ -31,13 +31,16 @@ import Queue
 currentFingerPosition = [0.0, 0.0, 0.0]
 target_point = []
 state = 0 
+finger_open_command = 0
 mission_data = Int32()
 ball_pos_in_kinova = Point()
 average_ball_pos = Point()
 last_average_ball_pos = Point()
 real_ball_pos = Point()
 ball_pos_list = []
-pos_lst = [[],[],[]]
+pos_lst_x = []
+pos_lst_y = []
+pos_lst_z = []
 
 kinova_pose = Point()
 kinova_complete = 0
@@ -278,11 +281,15 @@ class RobotArm():
 		global kinova_pose
 		global state_num_
 		global state_flag
+		global finger_open_command
 
 
-		print(state_num)
+		
+		if finger_open_command == 7:  #finger open 
+			gripper_client('j2n6s300_',[0,0,0])
+			time.sleep(0.5)
 
-		if state_num == 0:
+		if state_num == 0 and state_num_ == 0:
 			target_=[-0.368360340595, -0.0915138721466, 0.498772323132, 3.1319835186, 0.000802508671768, -2.05962896347]
 			for i in range(6):
 				self.m.append(target_[i])
@@ -290,14 +297,12 @@ class RobotArm():
 			self.go()
 			print('0 first point')
 			time.sleep(2)
-			print(kinova_pose.x)
-			print(kinova_pose.y)
-			print(kinova_pose.z)
+			self.m =[]
 			if abs(kinova_pose.x-target_[0])<0.03 and abs(kinova_pose.y-target_[1])<0.03 and abs(kinova_pose.z-target_[2])<0.03:
-				state_num = 1
+				
 				state_num_ = 1 
 
-		if state_num == 1 and state_num_ <2:  #recognize ball
+		if state_num_ == 1 and state_num ==1:  #recognize ball
 			target_=[-0.00153621006757, -0.404122054577, 0.496579319239, -3.13902044296, 0.0104509945959, 2.90323400497]
 			for i in range(6):
 				self.m.append(target_[i])
@@ -305,31 +310,35 @@ class RobotArm():
 			self.go()
 			print('1 in set')
 			self.m =[]
-			print(kinova_pose.x)
-			print(kinova_pose.y)
-			print(kinova_pose.z)
 			if abs(kinova_pose.x-target_[0])<0.1 and abs(kinova_pose.y-target_[1])<0.1 and abs(kinova_pose.z-target_[2])<0.1:
 				state_num_ = 2
 			time.sleep(2)
 
 		if state_num_ == 2:  #recognize ball
-			if flag_ == 0 :
+			if flag_ == 0 and average_ball_pos.x> 0 :
 				real_ball_pos = average_ball_pos 
 				flag_ = -1
 				gripper_client('j2n6s300_',[0,0,0])
 				time.sleep(1)
 
-			print("real_ball_pos")	
-			print(real_ball_pos.x)
-			print(real_ball_pos.y)
-			print(real_ball_pos.z)
-			target_=[real_ball_pos.x, real_ball_pos.y, real_ball_pos.z+0.11, -3.13902044296, 0.0104509945959, 2.90323400497]
-			for i in range(6):
-				self.m.append(target_[i])
-			print(self.m)
-			self.go()
-			print('2 in set')
-			if abs(kinova_pose.x-target_[0])<0.03 and abs(kinova_pose.y-target_[1])<0.03 and abs(kinova_pose.z-target_[2])<0.03:
+
+			if real_ball_pos.x> 0 :
+				target_=[real_ball_pos.x, real_ball_pos.y, real_ball_pos.z+0.11, -3.13902044296, 0.0104509945959, 2.90323400497]
+				for i in range(6):
+					self.m.append(target_[i])
+				print(self.m)
+				self.go()
+				print('2 in set')
+				print("real_ball_pos")	
+				print(real_ball_pos.x)
+				print(real_ball_pos.y)
+				print(real_ball_pos.z)
+			else:
+				print("ball pos =0")
+
+
+
+			if abs(kinova_pose.x-target_[0])<0.03 and abs(kinova_pose.y-target_[1])<0.03 and abs(kinova_pose.z-target_[2])<0.03 and flag_!=0:
 				state_num_ = 3
 			self.m =[]
 			time.sleep(2)
@@ -354,13 +363,10 @@ class RobotArm():
 			state_num_ = 6
 			
 
-		if state_num == 666:  #finger open 
-			gripper_client('j2n6s300_',[0,0,0])
-			
-			time.sleep(0.5)
+
 
 		if state_num_ == 6:  #recognize ball
-			print('3 in set')
+			print('6 in set')
 			target_=[real_ball_pos.x, real_ball_pos.y, real_ball_pos.z+0.2, -3.13902044296, 0.0104509945959, 2.90323400497]
 			for i in range(6):
 				self.m.append(target_[i])
@@ -371,13 +377,13 @@ class RobotArm():
 			self.m =[]
 			time.sleep(2)
 			kinova_complete = 1
-		if state_num == 5:  #finger open 
+			state_num_ = 7
+		if state_num == 5:  #finger sopen 
 			gripper_client('j2n6s300_',[0,0,0])
 			
 			time.sleep(0.5)
 		mission_data.data = kinova_complete
 		mission_state.publish(mission_data)
-		print (mission_data)
 		       
 
 def camera_callback(data):
@@ -387,35 +393,30 @@ def camera_callback(data):
 def state_callback(data):
 	global state 
 	state = data.data
-	mission_state.publish(mission_data)
 	print('in callback')
+
 	kinova_robotType = 'j2n6s300'
 	KINOVA = RobotArm(kinova_robotType)
 	KINOVA.getpos_from_camera(state,target_point)
+	mission_state.publish(mission_data)
 
 def ball_pos_callback(data):
 	global ball_pos_in_kinova
 	global q
 	global average_ball_pos
 	global last_average_ball_pos
-	global pos_lst
+	global pos_lst_x
+	global pos_lst_y
+	global pos_lst_z
 	global sumx
 	global sumy 
 	global sumz 
 	global state
 	global flag 
 
-	ball_pos_in_kinova = data 
-	if abs(data.x) <=0.6 and abs(data.y)<=0.6 and abs(data.z)<=1 and state>0:
-		
-		pos_lst[0].append[data.x]
-		pos_lst[1].append[data.y]
-		pos_lst[2].append[data.z]
-
 	
-	average_ball_pos.x = np.median(pos_lst[0])
-	average_ball_pos.y = np.median(pos_lst[1])
-	average_ball_pos.z = np.median(pos_lst[2])
+	average_ball_pos = data
+
 
 	'''
 	q.put(ball_pos_in_kinova)
@@ -445,15 +446,21 @@ def ball_pos_callback(data):
 					print(average_ball_pos.y)
 					print(average_ball_pos.z)
 				last_average_ball_pos = average_ball_pos
-	'''				
+	'''
+				
 	kinova_robotType = 'j2n6s300'
 	KINOVA = RobotArm(kinova_robotType)
 	KINOVA.getpos_from_camera(state,target_point)	
+
 
 def KinovaPose_callback(data):
 	kinova_pose.x = data.X
 	kinova_pose.y = data.Y
 	kinova_pose.z = data.Z
+def finger_open_callback(data):
+	global finger_open_command
+	finger_open_command = data.data
+
 
 if __name__ == '__main__':
 	rospy.init_node('j2n6s300_pose_action_client')
@@ -462,6 +469,7 @@ if __name__ == '__main__':
 	rospy.Subscriber("j2n6s300_driver/out/cartesian_command", KinovaPose, KinovaPose_callback)
 	# rospy.Subscriber("camera_coordinate", String, camera_callback)
 	rospy.Subscriber("state", Int32, state_callback)
+	rospy.Subscriber("finger_open", Int32, finger_open_callback)
 	mission_state = rospy.Publisher("kinova_ok", Int32, queue_size=1)
 	mission_data.data = 0
 	mission_state.publish(mission_data)
