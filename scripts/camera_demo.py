@@ -37,6 +37,7 @@ average_ball_pos = Point()
 last_average_ball_pos = Point()
 real_ball_pos = Point()
 ball_pos_list = []
+pos_lst = [[],[],[]]
 
 kinova_pose = Point()
 kinova_complete = 0
@@ -397,6 +398,7 @@ def ball_pos_callback(data):
 	global q
 	global average_ball_pos
 	global last_average_ball_pos
+	global pos_lst
 	global sumx
 	global sumy 
 	global sumz 
@@ -404,9 +406,16 @@ def ball_pos_callback(data):
 	global flag 
 
 	ball_pos_in_kinova = data 
-	if abs(data.x) <=1 and abs(data.y)<=0.6 and abs(data.z)<=1:
-		average_ball_pos = data
-	last_average_ball_pos = average_ball_pos
+	if abs(data.x) <=0.6 and abs(data.y)<=0.6 and abs(data.z)<=1 and state>0:
+		
+		pos_lst[0].append[data.x]
+		pos_lst[1].append[data.y]
+		pos_lst[2].append[data.z]
+
+	
+	average_ball_pos.x = np.median(pos_lst[0])
+	average_ball_pos.y = np.median(pos_lst[1])
+	average_ball_pos.z = np.median(pos_lst[2])
 
 	'''
 	q.put(ball_pos_in_kinova)
@@ -416,9 +425,7 @@ def ball_pos_callback(data):
 			temp_pos = q.get()
 
 			sumx += temp_pos.x
-			sumy += temp88065714286
--1.44111421589
-0.4799_pos.y
+			sumy += temp_pos.y
 			sumz += temp_pos.z
 			if i == 9:			
 				average_ball_pos.x = sumx/10
