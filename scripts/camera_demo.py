@@ -321,7 +321,7 @@ class RobotArm():
 			self.m =[]
 			time.sleep(2)
 
-			if abs(kinova_pose.x-target_[0])<0.03 and abs(kinova_pose.y-target_[1])<0.03 and abs(kinova_pose.z-target_[2])<0.03 and flag_!=0:
+			if abs(kinova_pose.x-target_[0])<0.03 and abs(kinova_pose.y-target_[1])<0.03 and abs(kinova_pose.z-target_[2])<0.03 and flag_for_get_ball_pos!=0:
 				state_num_ = 3
 
 
