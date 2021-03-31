@@ -9,6 +9,7 @@ pos_lst_y = []
 pos_lst_z = []
 ball_position = Point()
 state = 0
+flag = 0 
 
 def callback(data):
 	global pos_lst_x
@@ -16,6 +17,7 @@ def callback(data):
 	global pos_lst_z
 	global state
 	global ball_position
+	global flag
 	pub = rospy.Publisher("ball_pos", Point, queue_size=1)
 	camera_coordinate_x = data.x  
 	camera_coordinate_y = data.y 
@@ -29,16 +31,19 @@ def callback(data):
 
 	print(state)
 	if abs(kinova_coordinate_new.item(0)) <=0.7 and abs(kinova_coordinate_new.item(1))<=0.7 and abs(kinova_coordinate_new.item(2))<=1 and state!=0:
-		
-		pos_lst_x.append(kinova_coordinate_new.item(0))
-		pos_lst_y.append(kinova_coordinate_new.item(1))
-		pos_lst_z.append(kinova_coordinate_new.item(2))
-		ball_position.x = np.median(pos_lst_x)
-		ball_position.y = np.median(pos_lst_y)
-		ball_position.z = np.median(pos_lst_z)
-		print("get pos")
+		if flag >30:	
+			pos_lst_x.append(kinova_coordinate_new.item(0))
+			pos_lst_y.append(kinova_coordinate_new.item(1))
+			pos_lst_z.append(kinova_coordinate_new.item(2))
+			ball_position.x = np.median(pos_lst_x)
+			ball_position.y = np.median(pos_lst_y)
+			ball_position.z = np.median(pos_lst_z)
+			
+			print("get pos")
+		flag+=1
 
 	pub.publish(ball_position)
+
 	print("ball_position:"+str(ball_position))
 	print("pos_lst_x:"+str(pos_lst_x))
 	print("pos_lst_y:"+str(pos_lst_y))

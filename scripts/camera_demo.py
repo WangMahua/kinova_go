@@ -43,6 +43,7 @@ kinova_pose = Point()
 kinova_complete = 0
 flag_for_get_ball_pos = 0 
 state_num_ = 0
+flag_ = 0
 
 
 q = Queue.Queue(maxsize=10)
@@ -255,13 +256,14 @@ class RobotArm():
 		self.arm_s = rospy.Subscriber('arm/command',Int32,self.arm_get)
 		self.arm_p = rospy.Publisher('arm/finish',Int32,queue_size=1)
 
-		global average_ball_pos
+		
 		global flag_for_get_ball_pos  
 		global kinova_complete
 		global real_ball_pos
 		global kinova_pose
 		global state_num_ #self change
 		global finger_open_command
+		global flag_
 		
 		if finger_open_command == 7:  #finger open 
 			gripper_client('j2n6s300_',[0,0,0])
@@ -291,22 +293,26 @@ class RobotArm():
 			
 
 		if state_num_ == 2:  #grab ball
+
+			
 			if flag_for_get_ball_pos  == 0 and average_ball_pos.x> 0 : #open finger and only do one time (test and delete 2th condition)
 				real_ball_pos = average_ball_pos 
-				flag_for_get_ball_pos  = -1
+				flag_for_get_ball_pos  +=1
 				gripper_client('j2n6s300_',[0,0,0])
 				time.sleep(1)
 			''' 
-			if flag_for_get_ball_pos = 0 
+			if flag_for_get_ball_pos == 0 :
 				flag_for_get_ball_pos  = -1
 				gripper_client('j2n6s300_',[0,0,0])
 				time.sleep(1)
-			if average_ball_pos.x> 0
-				real_ball_pos = average_ball_pos 
-			'''	
 
-			if real_ball_pos.x> 0 :
-				target_=[real_ball_pos.x, real_ball_pos.y, real_ball_pos.z+0.11, -3.13902044296, 0.0104509945959, 2.90323400497]
+			if average_ball_pos.x != 0 and flag!=0:
+				real_ball_pos = average_ball_pos 
+				flag_=1
+				'''
+
+			if real_ball_pos.x!= 0 :
+				target_=[real_ball_pos.x, real_ball_pos.y, real_ball_pos.z+0.1, -3.13902044296, 0.0104509945959, 2.90323400497]
 				for i in range(6):
 					self.m.append(target_[i])
 				self.go()
@@ -320,8 +326,11 @@ class RobotArm():
 
 			self.m =[]
 			time.sleep(2)
+			print(average_ball_pos)
+			print(kinova_pose)
+			print(target_)
 
-			if abs(kinova_pose.x-target_[0])<0.03 and abs(kinova_pose.y-target_[1])<0.03 and abs(kinova_pose.z-target_[2])<0.03 and flag_!=0:
+			if abs(kinova_pose.x-real_ball_pos.x)<0.03 and abs(kinova_pose.y-real_ball_pos.y)<0.03 and abs(kinova_pose.z-real_ball_pos.z)<0.03 and flag_for_get_ball_pos >0:
 				state_num_ = 3
 
 
@@ -376,11 +385,14 @@ def state_callback(data):
 	KINOVA.getpos_from_camera(state,target_point)
 	mission_state.publish(mission_data)
 
-def ball_pos_callback(data):
-	global average_ball_pos
+def ball_pos_callback(pos_data):
+	
 	global state
 
-	average_ball_pos = data				
+	average_ball_pos=pos_data
+	print("in average callback")
+	print(pos_data)
+	print(average_ball_pos)				
 	kinova_robotType = 'j2n6s300'
 	KINOVA = RobotArm(kinova_robotType)
 	KINOVA.getpos_from_camera(state,target_point)	
