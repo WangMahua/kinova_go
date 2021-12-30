@@ -1,11 +1,11 @@
 # kinova_go
-## how to use
+## related library
 download following repo
 kinova core:https://github.com/Kinovarobotics/kinova-ros
 
 kinova gui:https://github.com/EasonHuang-tw/kinova_gui
 
-## 
+## how to use
 1. open kinova api and gui
 ```
 cd catkin_ws
