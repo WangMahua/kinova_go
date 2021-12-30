@@ -2,6 +2,7 @@
 ## how to use
 download following repo
 kinova core:https://github.com/Kinovarobotics/kinova-ros
+
 kinova gui:https://github.com/EasonHuang-tw/kinova_gui
 
 ## 
